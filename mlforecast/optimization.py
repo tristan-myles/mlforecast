@@ -35,6 +35,8 @@ def mlforecast_objective(
     id_col: str = "unique_id",
     time_col: str = "ds",
     target_col: str = "y",
+    lag_space=None,
+    exog_features=None
 ) -> Callable[[optuna.Trial], float]:
     """optuna objective function for the MLForecast class
 
@@ -73,6 +75,15 @@ def mlforecast_objective(
     """
 
     def objective(trial: optuna.Trial) -> float:
+        if exog_features:
+            for feature in exog_features:
+                for i, lag_options in enumerate(lag_space):
+                    lag =  trial.suggest_categorical(
+                        f'{feature}_lags_{i}', lag_options)
+                    df[f"{feature}_{i}"] = df[feature].shift(lag)
+            df.dropna(inplace=True)
+            df.reset_index(inplace=True, drop=True)
+
         config = config_fn(trial)
         trial.set_user_attr("config", copy.deepcopy(config))
         if all(

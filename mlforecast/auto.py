@@ -453,7 +453,8 @@ class AutoMLForecast:
         optimize_kwargs: Optional[Dict[str, Any]] = None,
         fitted: bool = False,
         prediction_intervals: Optional[PredictionIntervals] = None,
-    ) -> "AutoMLForecast":
+        lag_space=None,
+        exog_features=None) -> "AutoMLForecast":
         """Carry out the optimization process.
         Each model is optimized independently and the best one is trained on all data
 
@@ -556,6 +557,8 @@ class AutoMLForecast:
                 id_col=id_col,
                 time_col=time_col,
                 target_col=target_col,
+                lag_space=lag_space,
+                exog_features=exog_features
             )
             study = optuna.create_study(direction="minimize", **study_kwargs)
             study.optimize(objective, n_trials=num_samples, **optimize_kwargs)
