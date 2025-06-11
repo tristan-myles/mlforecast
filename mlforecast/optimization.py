@@ -75,14 +75,17 @@ def mlforecast_objective(
     """
 
     def objective(trial: optuna.Trial) -> float:
+        df_lagged = df.copy()
+
         if exog_features:
             for feature in exog_features:
                 for i, lag_options in enumerate(lag_space):
                     lag =  trial.suggest_categorical(
                         f'{feature}_lags_{i}', lag_options)
-                    df[f"{feature}_{i}"] = df[feature].shift(lag)
-            df.dropna(inplace=True)
-            df.reset_index(inplace=True, drop=True)
+                    df_lagged[f"{feature}_{i}"] = df.groupby(
+                        id_col)[feature].shift(lag)
+            df_lagged.dropna(inplace=True)
+            df_lagged.reset_index(inplace=True, drop=True)
 
         config = config_fn(trial)
         trial.set_user_attr("config", copy.deepcopy(config))
